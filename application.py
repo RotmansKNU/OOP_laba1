@@ -4,7 +4,6 @@ from excel_ui import ExcelUi
 
 if __name__ == "__main__":
     application = QtWidgets.QApplication(sys.argv)
-    window = QtWidgets.QMainWindow()
-    ExcelUi(window)
+    window = ExcelUi()
     window.show()
     sys.exit(application.exec_())
