@@ -1,11 +1,17 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from project_messages import *
+
+from openpyxl.utils import get_column_letter
+from xlsx_data import XlsxData
 
 
-class ExcelUi(QtWidgets.QMainWindow):
+class Excel(QtWidgets.QMainWindow):
     def __init__(self):
-        super(ExcelUi, self).__init__()
+        super(Excel, self).__init__()
+        self.external_table = XlsxData()
         self.rowCount = 4
         self.colCount = 4
+        self.base_char = ord('D')
         self.setObjectName("Excel")
         self.resize(867, 488)
         self.init_ui()
@@ -14,13 +20,13 @@ class ExcelUi(QtWidgets.QMainWindow):
         self.centralWidget = QtWidgets.QWidget(self)
         self.centralWidget.setObjectName("centralWidget")
 
-        self.pushButtonRow = QtWidgets.QPushButton(self.centralWidget)
-        self.pushButtonRow.setGeometry(QtCore.QRect(20, 20, 101, 31))
-        self.pushButtonRow.setObjectName("pushButtonRow")
+        self.pushButtonAddRow = QtWidgets.QPushButton(self.centralWidget)
+        self.pushButtonAddRow.setGeometry(QtCore.QRect(20, 20, 101, 31))
+        self.pushButtonAddRow.setObjectName("pushButtonAddRow")
 
-        self.pushButtonCol = QtWidgets.QPushButton(self.centralWidget)
-        self.pushButtonCol.setGeometry(QtCore.QRect(150, 20, 101, 31))
-        self.pushButtonCol.setObjectName("pushButtonCol")
+        self.pushButtonAddCol = QtWidgets.QPushButton(self.centralWidget)
+        self.pushButtonAddCol.setGeometry(QtCore.QRect(150, 20, 101, 31))
+        self.pushButtonAddCol.setObjectName("pushButtonAddCol")
 
         self.pushButtonDelRow = QtWidgets.QPushButton(self.centralWidget)
         self.pushButtonDelRow.setGeometry(QtCore.QRect(280, 20, 101, 31))
@@ -62,8 +68,8 @@ class ExcelUi(QtWidgets.QMainWindow):
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(3, item)
 
-        #item = QtWidgets.QTableWidgetItem()
-        #self.tableWidget.setItem(1, 1, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setItem(1, 1, item)
         #item = QtWidgets.QTableWidgetItem()
         #self.tableWidget.setItem(3, 3, item)
         self.setCentralWidget(self.centralWidget)
@@ -100,10 +106,17 @@ class ExcelUi(QtWidgets.QMainWindow):
         self.retranslate_ui(self)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-        self.pushButtonRow.clicked.connect(self.row_btn_clicked)
-        self.pushButtonCol.clicked.connect(self.col_btn_clicked)
+        self.pushButtonAddRow.clicked.connect(self.row_btn_add)
+        self.pushButtonDelRow.clicked.connect(self.row_btn_del)
+        self.pushButtonAddCol.clicked.connect(self.col_btn_add)
+        self.pushButtonDelCol.clicked.connect(self.col_btn_del)
 
-    def row_btn_clicked(self):
+        self.actionOpen.triggered.connect(self.read_external_table_data)
+        self.actionSave.triggered.connect(self.external_table.save_table)
+        self.actionClear.triggered.connect(about_project)
+        self.actionAbout.triggered.connect(about_project)
+
+    def row_btn_add(self):
         self.tableWidget.setRowCount(self.rowCount + 1)
 
         item = QtWidgets.QTableWidgetItem()
@@ -112,25 +125,64 @@ class ExcelUi(QtWidgets.QMainWindow):
         item = self.tableWidget.verticalHeaderItem(self.rowCount)
         item.setText(QtCore.QCoreApplication.translate("Excel", str(self.rowCount + 1)))
 
+        self.external_table.row_xlsx_add(self.rowCount + 1)
         self.rowCount += 1
 
-    def col_btn_clicked(self):
-        self.tableWidget.setColumnCount(self.colCount + 1)
+    def col_btn_add(self):
+        if self.base_char < ord('Z'):
+            self.base_char += 1
+            self.tableWidget.setColumnCount(self.colCount + 1)
+            item = QtWidgets.QTableWidgetItem()
+            self.tableWidget.setHorizontalHeaderItem(self.colCount, item)
+            item = self.tableWidget.horizontalHeaderItem(self.colCount)
+            item.setText(QtCore.QCoreApplication.translate("Excel", chr(self.base_char)))
+            self.external_table.col_xlsx_add(self.colCount + 1)
+            self.colCount += 1
+        else:
+            max_column_size_warning()
 
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(self.colCount, item)
+    def row_btn_del(self):
+        if self.rowCount > 3:
+            self.tableWidget.setRowCount(self.rowCount - 1)
+            self.external_table.row_xlsx_del(self.rowCount)
+            self.rowCount -= 1
+        else:
+            min_table_size_warning()
 
-        item = self.tableWidget.horizontalHeaderItem(self.colCount)
-        item.setText(QtCore.QCoreApplication.translate("Excel", "E"))
+    def col_btn_del(self):
+        if self.colCount > 3:
+            self.tableWidget.setColumnCount(self.colCount - 1)
+            self.external_table.col_xlsx_del(self.colCount)
+            self.colCount -= 1
+            self.base_char -= 1
+        else:
+            min_table_size_warning()
 
-        self.colCount += 1
+    def read_external_table_data(self):
+        #self.storage = [self.rowCount][self.colCount]
+        for row in range(1, self.rowCount + 1):
+            for col in range(1, self.colCount + 1):
+                char = get_column_letter(col)
+                self.tableWidget.setItem(row - 1, col - 1, QtWidgets.QTableWidgetItem(self.external_table.get_working_sheet()[char + str(row)].value))
+        #        self.storage[row - 1][col - 1] = str(self.external_table.get_working_sheet()[char + str(row)].value)
+#
+        #for row in range(0, self.rowCount):
+        #    for col in range(0, self.colCount):
+        #        print(self.storage[row][col])
+        #    print('\n')
+
+    def get_row_count(self):
+        return self.rowCount
+
+    def get_col_count(self):
+        return self.colCount
 
     def retranslate_ui(self, excel):
         _translate = QtCore.QCoreApplication.translate
         excel.setWindowTitle(_translate("Excel", "MeinLiebsterExcel"))
 
-        self.pushButtonRow.setText(_translate("Excel", "Add Row"))
-        self.pushButtonCol.setText(_translate("Excel", "Add Column"))
+        self.pushButtonAddRow.setText(_translate("Excel", "Add Row"))
+        self.pushButtonAddCol.setText(_translate("Excel", "Add Column"))
         self.pushButtonDelRow.setText(_translate("Excel", "Delete Row"))
         self.pushButtonDelCol.setText(_translate("Excel", "Delete Column"))
 
