@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from project_messages import *
+from technical_functions import *
 
 from openpyxl.utils import get_column_letter
 from xlsx_data import XlsxData
@@ -9,9 +9,9 @@ class Excel(QtWidgets.QMainWindow):
     def __init__(self):
         super(Excel, self).__init__()
         self.external_table = XlsxData()
+        self.table_data = []
         self.rowCount = 4
         self.colCount = 4
-        self.base_char = ord('D')
         self.setObjectName("Excel")
         self.resize(867, 488)
         self.init_ui()
@@ -36,8 +36,12 @@ class Excel(QtWidgets.QMainWindow):
         self.pushButtonDelCol.setGeometry(QtCore.QRect(410, 20, 101, 31))
         self.pushButtonDelCol.setObjectName("pushButtonDelCol")
 
+        self.pushButtonCalculate = QtWidgets.QPushButton(self.centralWidget)
+        self.pushButtonCalculate.setGeometry(QtCore.QRect(740, 30, 101, 31))
+        self.pushButtonCalculate.setObjectName("pushButtonCalculate")
+
         self.lineEdit = QtWidgets.QLineEdit(self.centralWidget)
-        self.lineEdit.setGeometry(QtCore.QRect(530, 30, 311, 31))
+        self.lineEdit.setGeometry(QtCore.QRect(530, 30, 200, 31))
         self.lineEdit.setObjectName("lineEdit")
 
         self.tableWidget = QtWidgets.QTableWidget(self.centralWidget)
@@ -68,15 +72,8 @@ class Excel(QtWidgets.QMainWindow):
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(3, item)
 
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setItem(1, 1, item)
-        #item = QtWidgets.QTableWidgetItem()
-        #self.tableWidget.setItem(3, 3, item)
         self.setCentralWidget(self.centralWidget)
 
-        #self.statusbar = QtWidgets.QStatusBar(excel)
-        #self.statusbar.setObjectName("statusbar")
-        #excel.setStatusBar(self.statusbar)
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
         self.menubar.setObjectName("menubar")
@@ -110,36 +107,38 @@ class Excel(QtWidgets.QMainWindow):
         self.pushButtonDelRow.clicked.connect(self.row_btn_del)
         self.pushButtonAddCol.clicked.connect(self.col_btn_add)
         self.pushButtonDelCol.clicked.connect(self.col_btn_del)
+        self.pushButtonCalculate.clicked.connect(self.input_line)
 
-        self.actionOpen.triggered.connect(self.read_external_table_data)
+        self.actionOpen.triggered.connect(self.load_data)
         self.actionSave.triggered.connect(self.external_table.save_table)
-        self.actionClear.triggered.connect(about_project)
+        self.actionClear.triggered.connect(self.clear_table)
         self.actionAbout.triggered.connect(about_project)
+
+        self.tableWidget.selectionModel().selectionChanged.connect(self.get_selected_cell)
 
     def row_btn_add(self):
         self.tableWidget.setRowCount(self.rowCount + 1)
 
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setVerticalHeaderItem(self.rowCount, item)
-
-        item = self.tableWidget.verticalHeaderItem(self.rowCount)
-        item.setText(QtCore.QCoreApplication.translate("Excel", str(self.rowCount + 1)))
+        self.tableWidget.setVerticalHeaderItem(self.rowCount, QtWidgets.QTableWidgetItem(str(self.rowCount + 1)))
 
         self.external_table.row_xlsx_add(self.rowCount + 1)
         self.rowCount += 1
 
     def col_btn_add(self):
-        if self.base_char < ord('Z'):
-            self.base_char += 1
-            self.tableWidget.setColumnCount(self.colCount + 1)
-            item = QtWidgets.QTableWidgetItem()
-            self.tableWidget.setHorizontalHeaderItem(self.colCount, item)
-            item = self.tableWidget.horizontalHeaderItem(self.colCount)
-            item.setText(QtCore.QCoreApplication.translate("Excel", chr(self.base_char)))
-            self.external_table.col_xlsx_add(self.colCount + 1)
-            self.colCount += 1
-        else:
-            max_column_size_warning()
+        base_char = 1
+        for s in iter_all_strings():
+            if base_char > self.colCount:
+                self.tableWidget.setColumnCount(self.colCount + 1)
+
+                self.tableWidget.setHorizontalHeaderItem(self.colCount, QtWidgets.QTableWidgetItem(s))
+
+                self.external_table.col_xlsx_add(self.colCount + 1)
+                base_char += 1
+                self.colCount += 1
+                break
+            else:
+                base_char += 1
+                continue
 
     def row_btn_del(self):
         if self.rowCount > 3:
@@ -154,28 +153,66 @@ class Excel(QtWidgets.QMainWindow):
             self.tableWidget.setColumnCount(self.colCount - 1)
             self.external_table.col_xlsx_del(self.colCount)
             self.colCount -= 1
-            self.base_char -= 1
         else:
             min_table_size_warning()
 
-    def read_external_table_data(self):
-        #self.storage = [self.rowCount][self.colCount]
-        for row in range(1, self.rowCount + 1):
-            for col in range(1, self.colCount + 1):
-                char = get_column_letter(col)
-                self.tableWidget.setItem(row - 1, col - 1, QtWidgets.QTableWidgetItem(self.external_table.get_working_sheet()[char + str(row)].value))
-        #        self.storage[row - 1][col - 1] = str(self.external_table.get_working_sheet()[char + str(row)].value)
-#
-        #for row in range(0, self.rowCount):
-        #    for col in range(0, self.colCount):
-        #        print(self.storage[row][col])
-        #    print('\n')
+    def load_data(self):
+        self.clear_table()
+        self.external_table.reload_work_book()
+        self.tableWidget.setRowCount(self.external_table.get_working_sheet().max_row)
+        self.tableWidget.setColumnCount(self.external_table.get_working_sheet().max_column)
+        self.set_horizontal_header_name()
+        self.table_data.extend(self.external_table.get_working_sheet().values)
+
+        row_ix = 0
+        for value_tuple in self.table_data:
+            col_ix = 0
+            for value in value_tuple:
+                self.tableWidget.setItem(row_ix, col_ix, QtWidgets.QTableWidgetItem(str(value)))
+                col_ix += 1
+            row_ix += 1
+
+        self.rowCount = self.tableWidget.rowCount()
+        self.colCount = self.tableWidget.columnCount()
+
+    def input_line(self):
+        expression = self.lineEdit.text()
+        try:
+            if expression != '':
+                self.tableWidget.setItem(self.cell_pair[0], self.cell_pair[1], QtWidgets.QTableWidgetItem(expression))
+            else:
+                expression_field_is_empty()
+        except:
+            cell_is_not_selected()
+
+    def clear_table(self):
+        for row in range(0, self.rowCount):
+            for col in range(0, self.colCount):
+                self.tableWidget.setItem(row, col, QtWidgets.QTableWidgetItem())
+                col += 1
+            row += 1
+        self.table_data.clear()
+
+    def get_selected_cell(self, selected, deselected):
+        for ix in selected.indexes():
+            self.cell_pair = list((ix.row(), ix.column()))
 
     def get_row_count(self):
         return self.rowCount
 
     def get_col_count(self):
         return self.colCount
+
+    def set_horizontal_header_name(self):
+        base_char = 1
+        for s in iter_all_strings():
+            if base_char > self.colCount:
+                self.tableWidget.setHorizontalHeaderItem(self.colCount, QtWidgets.QTableWidgetItem(s))
+                base_char += 1
+                break
+            else:
+                base_char += 1
+                continue
 
     def retranslate_ui(self, excel):
         _translate = QtCore.QCoreApplication.translate
@@ -185,6 +222,7 @@ class Excel(QtWidgets.QMainWindow):
         self.pushButtonAddCol.setText(_translate("Excel", "Add Column"))
         self.pushButtonDelRow.setText(_translate("Excel", "Delete Row"))
         self.pushButtonDelCol.setText(_translate("Excel", "Delete Column"))
+        self.pushButtonCalculate.setText(_translate("Excel", "Calculate"))
 
         self.tableWidget.setSortingEnabled(False)
 

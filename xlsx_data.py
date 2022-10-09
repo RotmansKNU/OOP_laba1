@@ -25,3 +25,8 @@ class XlsxData:
 
     def get_working_sheet(self):
         return self.ws
+
+    def reload_work_book(self):
+        self.wb.remove_sheet(self.ws)
+        self.wb = load_workbook('test.xlsx')
+        self.ws = self.wb.active
