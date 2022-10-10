@@ -3,7 +3,6 @@ from openpyxl import Workbook, load_workbook
 
 class XlsxData:
     def __init__(self):
-        super(XlsxData, self).__init__()
         self.wb = load_workbook('test.xlsx')
         self.ws = self.wb.active
 

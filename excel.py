@@ -7,14 +7,16 @@ from xlsx_data import XlsxData
 
 class Excel(QtWidgets.QMainWindow):
     def __init__(self):
-        super(Excel, self).__init__()
+        super().__init__()
         self.external_table = XlsxData()
-        self.table_data = []
+        self.msg = MessageBox()
+        self.cell = None
         self.rowCount = 4
         self.colCount = 4
         self.setObjectName("Excel")
         self.resize(867, 488)
         self.init_ui()
+        self.clear_table()
 
     def init_ui(self):
         self.centralWidget = QtWidgets.QWidget(self)
@@ -112,9 +114,10 @@ class Excel(QtWidgets.QMainWindow):
         self.actionOpen.triggered.connect(self.load_data)
         self.actionSave.triggered.connect(self.external_table.save_table)
         self.actionClear.triggered.connect(self.clear_table)
-        self.actionAbout.triggered.connect(about_project)
+        self.actionAbout.triggered.connect(self.msg.about_project)
 
-        self.tableWidget.selectionModel().selectionChanged.connect(self.get_selected_cell)
+        #self.tableWidget.selectionModel().selectionChanged.connect(self.get_selected_cell)
+        self.tableWidget.itemChanged.connect(self.trace_changes)
 
     def row_btn_add(self):
         self.tableWidget.setRowCount(self.rowCount + 1)
@@ -146,7 +149,7 @@ class Excel(QtWidgets.QMainWindow):
             self.external_table.row_xlsx_del(self.rowCount)
             self.rowCount -= 1
         else:
-            min_table_size_warning()
+            self.msg.min_table_size_warning()
 
     def col_btn_del(self):
         if self.colCount > 3:
@@ -154,7 +157,7 @@ class Excel(QtWidgets.QMainWindow):
             self.external_table.col_xlsx_del(self.colCount)
             self.colCount -= 1
         else:
-            min_table_size_warning()
+            self.msg.min_table_size_warning()
 
     def load_data(self):
         self.clear_table()
@@ -162,10 +165,10 @@ class Excel(QtWidgets.QMainWindow):
         self.tableWidget.setRowCount(self.external_table.get_working_sheet().max_row)
         self.tableWidget.setColumnCount(self.external_table.get_working_sheet().max_column)
         self.set_horizontal_header_name()
-        self.table_data.extend(self.external_table.get_working_sheet().values)
+        table_data = list(self.external_table.get_working_sheet().values)
 
         row_ix = 0
-        for value_tuple in self.table_data:
+        for value_tuple in table_data:
             col_ix = 0
             for value in value_tuple:
                 self.tableWidget.setItem(row_ix, col_ix, QtWidgets.QTableWidgetItem(str(value)))
@@ -179,11 +182,27 @@ class Excel(QtWidgets.QMainWindow):
         expression = self.lineEdit.text()
         try:
             if expression != '':
-                self.tableWidget.setItem(self.cell_pair[0], self.cell_pair[1], QtWidgets.QTableWidgetItem(expression))
+                self.cell.fill_cell(self.on_changing_cell(expression))
             else:
-                expression_field_is_empty()
+                self.msg.expression_field_is_empty()
         except:
-            cell_is_not_selected()
+            self.msg.cell_is_not_selected()
+
+    def get_selected_cell(self, selected, deselected):
+        for ix in selected.indexes():
+            self.cell = Cell(ix.row(), ix.column(), self.tableWidget)
+            if self.cell.get_cell_text(self.cell.row, self.cell.col) == '=':
+                print('=')
+
+    def trace_changes(self):
+        print('trace')
+        row = self.tableWidget.currentIndex().row()
+        col = self.tableWidget.currentIndex().column()
+        self.cell = Cell(row, col, self.tableWidget)
+        self.cell.calculating_in_cell()
+
+    def on_changing_cell(self, expr):
+        return expr * 2
 
     def clear_table(self):
         for row in range(0, self.rowCount):
@@ -191,11 +210,6 @@ class Excel(QtWidgets.QMainWindow):
                 self.tableWidget.setItem(row, col, QtWidgets.QTableWidgetItem())
                 col += 1
             row += 1
-        self.table_data.clear()
-
-    def get_selected_cell(self, selected, deselected):
-        for ix in selected.indexes():
-            self.cell_pair = list((ix.row(), ix.column()))
 
     def get_row_count(self):
         return self.rowCount
@@ -254,3 +268,20 @@ class Excel(QtWidgets.QMainWindow):
         __sortingEnabled = self.tableWidget.isSortingEnabled()
         self.tableWidget.setSortingEnabled(False)
         self.tableWidget.setSortingEnabled(__sortingEnabled)
+
+
+class Cell:
+    def __init__(self, row, col, tableWidget):
+        self.row = row
+        self.col = col
+        self.tableWidget = tableWidget
+
+    def get_cell_text(self, row, col):
+        return self.tableWidget.item(row, col).text()
+
+    def fill_cell(self, expr):
+        self.tableWidget.setItem(self.row, self.col, QtWidgets.QTableWidgetItem(expr))
+
+    def calculating_in_cell(self):
+        if self.tableWidget.item(self.row, self.col) == '=':
+            print('=')

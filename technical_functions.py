@@ -4,40 +4,40 @@ from string import ascii_uppercase
 import itertools
 
 
-def min_table_size_warning():
-    msg = QtWidgets.QMessageBox()
-    msg.setIcon(QtWidgets.QMessageBox.Warning)
-    msg.setWindowTitle("Warning")
-    msg.setText("You can't use table less than 3x3 dimension")
-    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    msg.exec_()
+class MessageBox:
+    def __init__(self):
+        self.msg = QtWidgets.QMessageBox()
 
+    def min_table_size_warning(self):
+        self.msg.setIcon(QtWidgets.QMessageBox.Warning)
+        self.msg.setWindowTitle("Warning")
+        self.msg.setText("You can't use table less than 3x3 dimension")
+        self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.msg.exec_()
 
-def about_project():
-    msg = QtWidgets.QMessageBox()
-    msg.setIcon(QtWidgets.QMessageBox.Information)
-    msg.setWindowTitle("About project")
-    msg.setText("Here you can publish your info")
-    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    msg.exec_()
+    def about_project(self):
+        self.msg = QtWidgets.QMessageBox()
+        self.msg.setIcon(QtWidgets.QMessageBox.Information)
+        self.msg.setWindowTitle("About project")
+        self.msg.setText("Here you can publish your info")
+        self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.msg.exec_()
 
+    def cell_is_not_selected(self):
+        self.msg = QtWidgets.QMessageBox()
+        self.msg.setIcon(QtWidgets.QMessageBox.Warning)
+        self.msg.setWindowTitle("Warning")
+        self.msg.setText("Select the cell and press button \"Calculate\"")
+        self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.msg.exec_()
 
-def cell_is_not_selected():
-    msg = QtWidgets.QMessageBox()
-    msg.setIcon(QtWidgets.QMessageBox.Warning)
-    msg.setWindowTitle("Warning")
-    msg.setText("Select the cell and press button \"Calculate\"")
-    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    msg.exec_()
-
-
-def expression_field_is_empty():
-    msg = QtWidgets.QMessageBox()
-    msg.setIcon(QtWidgets.QMessageBox.Warning)
-    msg.setWindowTitle("Warning")
-    msg.setText("Write expression and press button \"Calculate\"")
-    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    msg.exec_()
+    def expression_field_is_empty(self):
+        self.msg = QtWidgets.QMessageBox()
+        self.msg.setIcon(QtWidgets.QMessageBox.Warning)
+        self.msg.setWindowTitle("Warning")
+        self.msg.setText("Write expression and press button \"Calculate\"")
+        self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.msg.exec_()
 
 
 def iter_all_strings():
