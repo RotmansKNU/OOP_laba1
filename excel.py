@@ -1,8 +1,10 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from technical_functions import *
 
-from openpyxl.utils import get_column_letter
 from xlsx_data import XlsxData
+
+from cell import Cell
+from parser import Parser
 
 
 class Excel(QtWidgets.QMainWindow):
@@ -16,7 +18,6 @@ class Excel(QtWidgets.QMainWindow):
         self.setObjectName("Excel")
         self.resize(867, 488)
         self.init_ui()
-        self.clear_table()
 
     def init_ui(self):
         self.centralWidget = QtWidgets.QWidget(self)
@@ -116,7 +117,7 @@ class Excel(QtWidgets.QMainWindow):
         self.actionClear.triggered.connect(self.clear_table)
         self.actionAbout.triggered.connect(self.msg.about_project)
 
-        #self.tableWidget.selectionModel().selectionChanged.connect(self.get_selected_cell)
+        self.tableWidget.selectionModel().selectionChanged.connect(self.get_selected_cell)
         self.tableWidget.itemChanged.connect(self.trace_changes)
 
     def row_btn_add(self):
@@ -180,29 +181,26 @@ class Excel(QtWidgets.QMainWindow):
 
     def input_line(self):
         expression = self.lineEdit.text()
-        try:
+        if self.cell:
             if expression != '':
-                self.cell.fill_cell(self.on_changing_cell(expression))
+                self.cell.parsing(expression)
             else:
                 self.msg.expression_field_is_empty()
-        except:
+        else:
             self.msg.cell_is_not_selected()
 
     def get_selected_cell(self, selected, deselected):
         for ix in selected.indexes():
             self.cell = Cell(ix.row(), ix.column(), self.tableWidget)
-            if self.cell.get_cell_text(self.cell.row, self.cell.col) == '=':
-                print('=')
 
     def trace_changes(self):
-        print('trace')
         row = self.tableWidget.currentIndex().row()
         col = self.tableWidget.currentIndex().column()
-        self.cell = Cell(row, col, self.tableWidget)
-        self.cell.calculating_in_cell()
-
-    def on_changing_cell(self, expr):
-        return expr * 2
+        thing = self.tableWidget.item(row, col)
+        if thing is not None and thing.text() != '':
+            cell = Cell(row, col, self.tableWidget)
+            if cell.get_cell_text(row, col)[0] == '=':
+                cell.parsing(thing.text())
 
     def clear_table(self):
         for row in range(0, self.rowCount):
@@ -268,20 +266,3 @@ class Excel(QtWidgets.QMainWindow):
         __sortingEnabled = self.tableWidget.isSortingEnabled()
         self.tableWidget.setSortingEnabled(False)
         self.tableWidget.setSortingEnabled(__sortingEnabled)
-
-
-class Cell:
-    def __init__(self, row, col, tableWidget):
-        self.row = row
-        self.col = col
-        self.tableWidget = tableWidget
-
-    def get_cell_text(self, row, col):
-        return self.tableWidget.item(row, col).text()
-
-    def fill_cell(self, expr):
-        self.tableWidget.setItem(self.row, self.col, QtWidgets.QTableWidgetItem(expr))
-
-    def calculating_in_cell(self):
-        if self.tableWidget.item(self.row, self.col) == '=':
-            print('=')
