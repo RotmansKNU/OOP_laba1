@@ -25,11 +25,9 @@ class Cell:
                 self.fill_cell(str(res))
             else:
                 self.msg.incorrect_expression()
-                self.fill_cell('')
         else:
             res = parser.calculation_from_line()
             if res is not None:
                 self.fill_cell(str(res))
             else:
                 self.msg.incorrect_expression()
-                self.fill_cell('')

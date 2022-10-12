@@ -6,17 +6,20 @@ from xlsx_data import XlsxData
 from cell import Cell
 from parser import Parser
 
+import pandas as pd
 
 class Excel(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.external_table = XlsxData()
         self.msg = MessageBox()
+        self.external_table = XlsxData()
         self.cell = None
+        self.textInInputLine = ''
         self.rowCount = 4
         self.colCount = 4
         self.setObjectName("Excel")
-        self.resize(867, 488)
+        self.setMinimumSize(860, 490)
+        self.setMaximumSize(860, 490)
         self.init_ui()
 
     def init_ui(self):
@@ -40,8 +43,12 @@ class Excel(QtWidgets.QMainWindow):
         self.pushButtonDelCol.setObjectName("pushButtonDelCol")
 
         self.pushButtonCalculate = QtWidgets.QPushButton(self.centralWidget)
-        self.pushButtonCalculate.setGeometry(QtCore.QRect(740, 30, 101, 31))
+        self.pushButtonCalculate.setGeometry(QtCore.QRect(740, 10, 101, 31))
         self.pushButtonCalculate.setObjectName("pushButtonCalculate")
+
+        self.pushButtonAC = QtWidgets.QPushButton(self.centralWidget)
+        self.pushButtonAC.setGeometry(QtCore.QRect(740, 50, 101, 31))
+        self.pushButtonAC.setObjectName("pushButtonAC")
 
         self.lineEdit = QtWidgets.QLineEdit(self.centralWidget)
         self.lineEdit.setGeometry(QtCore.QRect(530, 30, 200, 31))
@@ -78,7 +85,7 @@ class Excel(QtWidgets.QMainWindow):
         self.setCentralWidget(self.centralWidget)
 
         self.menubar = QtWidgets.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1080, 720))
         self.menubar.setObjectName("menubar")
 
         self.menuFile = QtWidgets.QMenu(self.menubar)
@@ -110,10 +117,11 @@ class Excel(QtWidgets.QMainWindow):
         self.pushButtonDelRow.clicked.connect(self.row_btn_del)
         self.pushButtonAddCol.clicked.connect(self.col_btn_add)
         self.pushButtonDelCol.clicked.connect(self.col_btn_del)
-        self.pushButtonCalculate.clicked.connect(self.input_line)
+        self.pushButtonCalculate.clicked.connect(self.calculate)
+        self.pushButtonAC.clicked.connect(self.clear_line)
 
         self.actionOpen.triggered.connect(self.load_data)
-        self.actionSave.triggered.connect(self.external_table.save_table)
+        self.actionSave.triggered.connect(self.save_data)
         self.actionClear.triggered.connect(self.clear_table)
         self.actionAbout.triggered.connect(self.msg.about_project)
 
@@ -145,41 +153,75 @@ class Excel(QtWidgets.QMainWindow):
                 continue
 
     def row_btn_del(self):
-        if self.rowCount > 3:
+        if self.rowCount > 1:
             self.tableWidget.setRowCount(self.rowCount - 1)
             self.external_table.row_xlsx_del(self.rowCount)
             self.rowCount -= 1
         else:
-            self.msg.min_table_size_warning()
+            self.msg.min_table_row_warning()
 
     def col_btn_del(self):
-        if self.colCount > 3:
+        if self.colCount > 1:
             self.tableWidget.setColumnCount(self.colCount - 1)
             self.external_table.col_xlsx_del(self.colCount)
             self.colCount -= 1
         else:
-            self.msg.min_table_size_warning()
+            self.msg.min_table_col_warning()
 
     def load_data(self):
-        self.clear_table()
-        self.external_table.reload_work_book()
-        self.tableWidget.setRowCount(self.external_table.get_working_sheet().max_row)
-        self.tableWidget.setColumnCount(self.external_table.get_working_sheet().max_column)
-        self.set_horizontal_header_name()
-        table_data = list(self.external_table.get_working_sheet().values)
+        try:
+            self.external_table.set_path(self.msg.open_file(self))
+            self.external_table.reload_work_book()
+            self.clear_table()
 
-        row_ix = 0
-        for value_tuple in table_data:
-            col_ix = 0
-            for value in value_tuple:
-                self.tableWidget.setItem(row_ix, col_ix, QtWidgets.QTableWidgetItem(str(value)))
-                col_ix += 1
-            row_ix += 1
+            table_data = list(self.external_table.get_working_sheet().values)
+            self.creating_sheet_for_data()
 
-        self.rowCount = self.tableWidget.rowCount()
-        self.colCount = self.tableWidget.columnCount()
+            row_ix = 0
+            for value_tuple in table_data:
+                col_ix = 0
+                for value in value_tuple:
+                    self.tableWidget.setItem(row_ix, col_ix, QtWidgets.QTableWidgetItem(str(value)))
+                    col_ix += 1
+                row_ix += 1
 
-    def input_line(self):
+            self.rowCount = self.tableWidget.rowCount()
+            self.colCount = self.tableWidget.columnCount()
+        except:
+            self.msg.wrong_file_format()
+
+    def save_data(self):
+        try:
+            print('saving')
+            path = self.msg.save_file(self)
+
+            columnHeaders = []
+            for j in range(self.tableWidget.model().columnCount()):
+                columnHeaders.append(self.tableWidget.horizontalHeaderItem(j).text())
+
+            df = pd.DataFrame(columns=columnHeaders)
+
+            for row in range(self.tableWidget.rowCount()):
+                for col in range(self.tableWidget.columnCount()):
+                    df.at[row, columnHeaders[col]] = self.tableWidget.item(row, col).text()
+
+            df.to_excel(path[0], index=False)
+
+        except:
+            self.msg.wrong_file_format()
+
+
+    def creating_sheet_for_data(self):
+        maxRow = self.external_table.get_working_sheet().max_row
+        maxCol = self.external_table.get_working_sheet().max_column
+        for it in range(3, maxRow):
+            if self.rowCount < maxRow:
+                self.row_btn_add()
+        for it in range(3, maxCol):
+            if self.colCount < maxCol:
+                self.col_btn_add()
+
+    def calculate(self):
         expression = self.lineEdit.text()
         if self.cell:
             if expression != '':
@@ -189,9 +231,22 @@ class Excel(QtWidgets.QMainWindow):
         else:
             self.msg.cell_is_not_selected()
 
+    def fill_line(self):
+        row = self.tableWidget.currentIndex().row()
+        col = self.tableWidget.currentIndex().column()
+        thing = self.tableWidget.item(row, col)
+        if thing is not None and thing.text() != '' and thing.text()[0] != '=':
+            self.lineEdit.setText(self.add_text_to_line_on_stack(thing.text()))
+
+    def add_text_to_line_on_stack(self, txt):
+        expression = self.lineEdit.text()
+        self.textInInputLine = expression + txt
+        return self.textInInputLine
+
     def get_selected_cell(self, selected, deselected):
         for ix in selected.indexes():
             self.cell = Cell(ix.row(), ix.column(), self.tableWidget)
+            self.fill_line()
 
     def trace_changes(self):
         row = self.tableWidget.currentIndex().row()
@@ -209,22 +264,14 @@ class Excel(QtWidgets.QMainWindow):
                 col += 1
             row += 1
 
+    def clear_line(self):
+        self.lineEdit.setText('')
+
     def get_row_count(self):
         return self.rowCount
 
     def get_col_count(self):
         return self.colCount
-
-    def set_horizontal_header_name(self):
-        base_char = 1
-        for s in iter_all_strings():
-            if base_char > self.colCount:
-                self.tableWidget.setHorizontalHeaderItem(self.colCount, QtWidgets.QTableWidgetItem(s))
-                base_char += 1
-                break
-            else:
-                base_char += 1
-                continue
 
     def retranslate_ui(self, excel):
         _translate = QtCore.QCoreApplication.translate
@@ -235,6 +282,7 @@ class Excel(QtWidgets.QMainWindow):
         self.pushButtonDelRow.setText(_translate("Excel", "Delete Row"))
         self.pushButtonDelCol.setText(_translate("Excel", "Delete Column"))
         self.pushButtonCalculate.setText(_translate("Excel", "Calculate"))
+        self.pushButtonAC.setText(_translate("Excel", "AC"))
 
         self.tableWidget.setSortingEnabled(False)
 
