@@ -17,6 +17,13 @@ class MessageBox:
         self.msg.setStandardButtons(self.msg.Ok)
         self.msg.exec_()
 
+    def wrong_index(self):
+        self.msg.setIcon(self.msg.Critical)
+        self.msg.setWindowTitle("Error")
+        self.msg.setText("You input wrong index!")
+        self.msg.setStandardButtons(self.msg.Ok)
+        self.msg.exec_()
+
     def min_table_row_warning(self):
         self.msg.setIcon(self.msg.Warning)
         self.msg.setWindowTitle("Warning")
@@ -79,6 +86,13 @@ class MessageBox:
         self.msg.setIcon(self.msg.Critical)
         self.msg.setWindowTitle("Error")
         self.msg.setText("Incorrect file format!")
+        self.msg.setStandardButtons(self.msg.Ok)
+        self.msg.exec_()
+
+    def dividing_by_zero(self):
+        self.msg.setIcon(self.msg.Critical)
+        self.msg.setWindowTitle("Error")
+        self.msg.setText("You can't divide by zero!")
         self.msg.setStandardButtons(self.msg.Ok)
         self.msg.exec_()
 
