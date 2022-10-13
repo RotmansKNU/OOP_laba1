@@ -17,10 +17,42 @@ class Parser(excel.Cell):
                    'min': lambda x, y: min(x, y)}
 
     def calculation_from_cell(self):
-        print('cell')
-        pattern = re.compile('^(\=[A-Z]{1,2}\d+)(\+|\-|\*|\/|\^)([A-Z]{1,2}\d+)$')
-        if re.search(pattern, self.expression):
-            print('letter')
+        pattern = re.compile('^\=([A-Z]{1,2})(\d+)(\+|\-|\*|\/|\^)([A-Z]{1,2})(\d+)$')
+        it = re.finditer(pattern, self.expression)
+        operands = None
+        parts = []
+        if it:
+            for element in it:
+                operands = element.group(1, 2, 3, 4, 5)
+                if operands is not None:
+                    for j in range(self.tableWidget.columnCount()):
+                        if operands[0] == self.tableWidget.horizontalHeaderItem(j).text():
+                            parts.append(self.tableWidget.item(int(operands[1]) - 1, j).text())
+                        elif operands[3] == self.tableWidget.horizontalHeaderItem(j).text():
+                            parts.append(self.tableWidget.item(int(operands[4]) - 1, j).text())
+                    return self.op[operands[2]](int(parts[0]), int(parts[1]))
+                else:
+                    return None
+
+    def calculation_from_cell(self):
+        pattern = re.compile('^\=([A-Z]{1,2})(\d+)(\+|\-|\*|\/|\^)([A-Z]{1,2})(\d+)$')
+        it = re.finditer(pattern, self.expression)
+        operands = None
+        parts = []
+        if it:
+            for element in it:
+                operands = element.group(1, 2, 3, 4, 5)
+                if operands is not None:
+                    for j in range(self.tableWidget.columnCount()):
+                        if operands[0] == self.tableWidget.horizontalHeaderItem(j).text():
+                            parts.append(self.tableWidget.item(int(operands[1]) - 1, j).text())
+                        elif operands[3] == self.tableWidget.horizontalHeaderItem(j).text():
+                            parts.append(self.tableWidget.item(int(operands[4]) - 1, j).text())
+                    return self.op[operands[2]](int(parts[0]), int(parts[1]))
+                else:
+                    return None
+
+
 
     def calculation_from_line(self):
         pattern = re.compile('^(\-\d+|\d+)\s{0,1}(\+|\-|\*|\/|\^)\s{0,1}(\-\d+|\d+)$')

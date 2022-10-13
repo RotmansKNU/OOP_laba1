@@ -18,7 +18,11 @@ class Cell:
     def parsing(self, expr):
         parser = excel.Parser(expr, self.tableWidget)
         if expr[0] == '=':
-            parser.calculation_from_cell()
+            res = parser.calculation_from_cell()
+            if res is not None:
+                self.fill_cell(str(res))
+            else:
+                self.msg.incorrect_expression()
         elif expr[:3] == 'max' or expr[:3] == 'min':
             res = parser.comparing_functions()
             if res is not None:

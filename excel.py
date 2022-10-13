@@ -8,6 +8,7 @@ from parser import Parser
 
 import pandas as pd
 
+
 class Excel(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -21,6 +22,8 @@ class Excel(QtWidgets.QMainWindow):
         self.setMinimumSize(860, 490)
         self.setMaximumSize(860, 490)
         self.init_ui()
+        self.clear_table()
+        self.is_saved = True
 
     def init_ui(self):
         self.centralWidget = QtWidgets.QWidget(self)
@@ -120,7 +123,7 @@ class Excel(QtWidgets.QMainWindow):
         self.pushButtonCalculate.clicked.connect(self.calculate)
         self.pushButtonAC.clicked.connect(self.clear_line)
 
-        self.actionOpen.triggered.connect(self.load_data)
+        self.actionOpen.triggered.connect(self.open_data)
         self.actionSave.triggered.connect(self.save_data)
         self.actionClear.triggered.connect(self.clear_table)
         self.actionAbout.triggered.connect(self.msg.about_project)
@@ -128,12 +131,15 @@ class Excel(QtWidgets.QMainWindow):
         self.tableWidget.selectionModel().selectionChanged.connect(self.get_selected_cell)
         self.tableWidget.itemChanged.connect(self.trace_changes)
 
+    def closeEvent(self, event):
+        if self.is_saved is not True:
+            self.msg.save_before_close(event, self.tableWidget, self.save_data)
+
     def row_btn_add(self):
         self.tableWidget.setRowCount(self.rowCount + 1)
 
         self.tableWidget.setVerticalHeaderItem(self.rowCount, QtWidgets.QTableWidgetItem(str(self.rowCount + 1)))
 
-        self.external_table.row_xlsx_add(self.rowCount + 1)
         self.rowCount += 1
 
     def col_btn_add(self):
@@ -144,7 +150,6 @@ class Excel(QtWidgets.QMainWindow):
 
                 self.tableWidget.setHorizontalHeaderItem(self.colCount, QtWidgets.QTableWidgetItem(s))
 
-                self.external_table.col_xlsx_add(self.colCount + 1)
                 base_char += 1
                 self.colCount += 1
                 break
@@ -155,7 +160,6 @@ class Excel(QtWidgets.QMainWindow):
     def row_btn_del(self):
         if self.rowCount > 1:
             self.tableWidget.setRowCount(self.rowCount - 1)
-            self.external_table.row_xlsx_del(self.rowCount)
             self.rowCount -= 1
         else:
             self.msg.min_table_row_warning()
@@ -163,10 +167,16 @@ class Excel(QtWidgets.QMainWindow):
     def col_btn_del(self):
         if self.colCount > 1:
             self.tableWidget.setColumnCount(self.colCount - 1)
-            self.external_table.col_xlsx_del(self.colCount)
             self.colCount -= 1
         else:
             self.msg.min_table_col_warning()
+
+    def open_data(self):
+        if self.is_saved:
+            self.load_data()
+        else:
+            if self.msg.save_when_reopen(self.tableWidget, self.save_data):
+                self.load_data()
 
     def load_data(self):
         try:
@@ -181,7 +191,10 @@ class Excel(QtWidgets.QMainWindow):
             for value_tuple in table_data:
                 col_ix = 0
                 for value in value_tuple:
-                    self.tableWidget.setItem(row_ix, col_ix, QtWidgets.QTableWidgetItem(str(value)))
+                    if value is not None:
+                        self.tableWidget.setItem(row_ix, col_ix, QtWidgets.QTableWidgetItem(str(value)))
+                    else:
+                        self.tableWidget.setItem(row_ix, col_ix, QtWidgets.QTableWidgetItem(''))
                     col_ix += 1
                 row_ix += 1
 
@@ -205,11 +218,10 @@ class Excel(QtWidgets.QMainWindow):
                 for col in range(self.tableWidget.columnCount()):
                     df.at[row, columnHeaders[col]] = self.tableWidget.item(row, col).text()
 
-            df.to_excel(path[0], index=False)
-
+            df.to_excel(path[0], header=False, index=False)
+            self.is_saved = True
         except:
             self.msg.wrong_file_format()
-
 
     def creating_sheet_for_data(self):
         maxRow = self.external_table.get_working_sheet().max_row
@@ -249,6 +261,7 @@ class Excel(QtWidgets.QMainWindow):
             self.fill_line()
 
     def trace_changes(self):
+        self.is_saved = False
         row = self.tableWidget.currentIndex().row()
         col = self.tableWidget.currentIndex().column()
         thing = self.tableWidget.item(row, col)
