@@ -267,7 +267,7 @@ class Excel(QtWidgets.QMainWindow):
         thing = self.tableWidget.item(row, col)
         if thing is not None and thing.text() != '':
             cell = Cell(row, col, self.tableWidget)
-            if cell.get_cell_text(row, col)[0] == '=':
+            if cell.get_cell_text(row, col)[0] == '=' or cell.get_cell_text(row, col)[0] == '#':
                 cell.parsing(thing.text())
 
     def clear_table(self):

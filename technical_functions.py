@@ -96,6 +96,13 @@ class MessageBox:
         self.msg.setStandardButtons(self.msg.Ok)
         self.msg.exec_()
 
+    def numbers_are_equal(self):
+        self.msg.setIcon(self.msg.Warning)
+        self.msg.setWindowTitle("Warning")
+        self.msg.setText("Your numbers are equal")
+        self.msg.setStandardButtons(self.msg.Ok)
+        self.msg.exec_()
+
 
 def iter_all_strings():
     for size in itertools.count(1):

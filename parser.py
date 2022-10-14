@@ -15,14 +15,11 @@ class Parser(excel.Cell):
                    '*': lambda x, y: x * y,
                    '/': lambda x, y: x / y if (y != 0) else self.msg.dividing_by_zero(),
                    '^': lambda x, y: x ** y,
-                   'max': lambda x, y: max(x, y),
-                   'min': lambda x, y: min(x, y)}
-
-        # if calculate with none cell
-        # replacing
+                   'max': lambda x, y: max(x, y) if (x != y) else self.msg.numbers_are_equal(),
+                   'min': lambda x, y: min(x, y) if (x != y) else self.msg.numbers_are_equal()}
 
     def calculation_from_cell(self):
-        pattern = re.compile('^\=([A-Z]*)(\-\d*\.?\d*|\d*\.?\d*)(\+|\-|\*|\/|\^)([A-Z]*)(\-\d*\.?\d*|\d*\.?\d*)$')
+        pattern = re.compile('^\=(\-?)([A-Z]*)(\-\d*\.?\d*|\d*\.?\d*)(\+|\-|\*|\/|\^)([A-Z]*)(\-\d*\.?\d*|\d*\.?\d*)$')
         it = re.finditer(pattern, self.expression)
         operands = None
         first = True
@@ -32,24 +29,34 @@ class Parser(excel.Cell):
         try:
             if it:
                 for element in it:
-                    operands = element.group(1, 2, 3, 4, 5)
+                    operands = element.group(1, 2, 3, 4, 5, 6)
                     if operands is not None:
                         for j in range(self.tableWidget.columnCount()):
-                            if operands[0] == self.tableWidget.horizontalHeaderItem(j).text() and first:
-                                parts[0] = self.tableWidget.item(int(operands[1]) - 1, j).text()
+                            if operands[1] == self.tableWidget.horizontalHeaderItem(j).text() and first:
+                                if self.tableWidget.item(int(operands[2]) - 1, j).text() != '':
+                                    parts[0] = self.tableWidget.item(int(operands[2]) - 1, j).text()
+                                    first = False
+                                else:
+                                    parts[0] = 0
+                                    first = False
+                            elif operands[4] == self.tableWidget.horizontalHeaderItem(j).text() and second:
+                                if self.tableWidget.item(int(operands[5]) - 1, j).text() != '':
+                                    parts[1] = self.tableWidget.item(int(operands[5]) - 1, j).text()
+                                    second = False
+                                else:
+                                    parts[1] = 0
+                                    second = False
+
+                            if operands[1] == '' and first:
+                                parts[0] = operands[2]
                                 first = False
-                            elif operands[3] == self.tableWidget.horizontalHeaderItem(j).text() and second:
-                                parts[1] = self.tableWidget.item(int(operands[4]) - 1, j).text()
+                            if operands[4] == '' and second:
+                                parts[1] = operands[5]
                                 second = False
 
-                            if operands[0] == '' and first:
-                                parts[0] = operands[1]
-                                first = False
-                            if operands[3] == '' and second:
-                                parts[1] = operands[4]
-                                second = False
-
-                        return self.op[operands[2]](float(parts[0]), float(parts[1]))
+                        if operands[0] == '-':
+                            parts[0] = float(parts[0]) * -1
+                        return self.op[operands[3]](float(parts[0]), float(parts[1]))
                     else:
                         return None
         except:
@@ -70,15 +77,23 @@ class Parser(excel.Cell):
                     operands = element.group(1, 2, 3, 4, 5)
                     if operands is not None:
                         for j in range(self.tableWidget.columnCount()):
-                            if operands[0] == self.tableWidget.horizontalHeaderItem(j).text() and first:
-                                parts[0] = self.tableWidget.item(int(operands[1]) - 1, j).text()
-                                first = False
+                            if operands[1] == self.tableWidget.horizontalHeaderItem(j).text() and first:
+                                if self.tableWidget.item(int(operands[2]) - 1, j).text() != '':
+                                    parts[0] = self.tableWidget.item(int(operands[2]) - 1, j).text()
+                                    first = False
+                                else:
+                                    parts[0] = 0
+                                    first = False
                             elif operands[3] == self.tableWidget.horizontalHeaderItem(j).text() and second:
-                                parts[1] = self.tableWidget.item(int(operands[4]) - 1, j).text()
-                                second = False
+                                if self.tableWidget.item(int(operands[4]) - 1, j).text() != '':
+                                    parts[1] = self.tableWidget.item(int(operands[4]) - 1, j).text()
+                                    second = False
+                                else:
+                                    parts[1] = 0
+                                    second = False
 
-                            if operands[0] == '' and first:
-                                parts[0] = operands[1]
+                            if operands[1] == '' and first:
+                                parts[0] = operands[2]
                                 first = False
                             if operands[3] == '' and second:
                                 parts[1] = operands[4]
@@ -114,3 +129,25 @@ class Parser(excel.Cell):
                     return self.op[operands[0]](float(operands[1]), float(operands[2]))
                 else:
                     return None
+
+    def replacement(self):
+        pattern = re.compile('^\#([A-Z]+)(\d+)$')
+
+        it = re.finditer(pattern, self.expression)
+        operands = None
+        try:
+            if it:
+                for element in it:
+                    operands = element.group(1, 2)
+                    if operands is not None:
+                        for j in range(self.tableWidget.columnCount()):
+                            if operands[0] == self.tableWidget.horizontalHeaderItem(j).text():
+                                if self.tableWidget.item(int(operands[1]) - 1, j).text() != '':
+                                    return self.tableWidget.item(int(operands[1]) - 1, j).text()
+                                else:
+                                    return 0
+                    else:
+                        return None
+        except:
+            self.msg.wrong_index()
+            return False

@@ -19,6 +19,8 @@ class Cell:
         self.parser = excel.Parser(expr, self.tableWidget)
         if expr[0] == '=':
             self.parsing_for_cell(expr)
+        elif expr[0] == '#':
+            self.parsing_for_replacement(expr)
         else:
             self.parsing_for_line(expr)
 
@@ -33,6 +35,15 @@ class Cell:
             self.line_comparing()
         else:
             self.line_calculation()
+
+    def parsing_for_replacement(self, expr):
+        res = self.parser.replacement()
+        if res is not None:
+            self.fill_cell(str(res))
+        elif res == '0':
+            self.fill_cell(str(expr))
+        else:
+            self.msg.incorrect_expression()
 
     def line_calculation(self):
         res = self.parser.calculation_from_line()
