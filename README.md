@@ -1,10 +1,21 @@
-Project copycat Excel. <br>
+Цей додаток був створений задовго до появи оригінального Excel! <br>
+Тут можна виконати такі дії:
 
-To launch the project do this: <br>
-1) Copy the link on repository than use url in Pycharm to clone repository <br>
-2) In Terminal : <br>
-3) Python -m venv venv <br>
-4) Venv/Scripts/activate <br>
-5) Pip install -r requirements.txt <br>
-6) Choose interpreter that you just created in settings <br>
-7) Run the app!
+1. У лініїї введення: <p>
+    a) Додавання  
+    b) Віднімання   
+    b) Множення  
+    c) Ділення  
+    d) Піднесення до степеня  
+    e) Знаходження максимального та мінімального серед двох значень  
+    f) Підтримуються унарні операціі <br><br>
+
+2. У комірках, за умови що перед виразом є '=':  
+Приклад 1: =B2 + 3  
+   a) Всі операії перераховані у першому пункті  
+   b) Внесення у клітинку значення іншої клітинки, за умови що перед виразом є '#'  
+   Приклад 2: #B3 <br><br>
+
+3. Відкрити існуючий файл з розширенням xlsx або xls 
+4. Зберігти таблицю у файл з розширенням xlsx або xls 
+5. Очистити всю таблицю

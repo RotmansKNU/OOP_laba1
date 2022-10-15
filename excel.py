@@ -12,6 +12,7 @@ import pandas as pd
 class Excel(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
+        self.tableWidget = None
         self.msg = MessageBox()
         self.external_table = XlsxData()
         self.cell = None
@@ -22,6 +23,7 @@ class Excel(QtWidgets.QMainWindow):
         self.setMinimumSize(860, 490)
         self.setMaximumSize(860, 490)
         self.init_ui()
+        self.on_event()
         self.clear_table()
         self.is_saved = True
 
@@ -116,6 +118,7 @@ class Excel(QtWidgets.QMainWindow):
         self.retranslate_ui(self)
         QtCore.QMetaObject.connectSlotsByName(self)
 
+    def on_event(self):
         self.pushButtonAddRow.clicked.connect(self.row_btn_add)
         self.pushButtonDelRow.clicked.connect(self.row_btn_del)
         self.pushButtonAddCol.clicked.connect(self.col_btn_add)
@@ -200,12 +203,12 @@ class Excel(QtWidgets.QMainWindow):
 
             self.rowCount = self.tableWidget.rowCount()
             self.colCount = self.tableWidget.columnCount()
+            self.is_saved = True
         except:
             self.msg.wrong_file_format()
 
     def save_data(self):
         try:
-            print('saving')
             path = self.msg.save_file(self)
 
             columnHeaders = []

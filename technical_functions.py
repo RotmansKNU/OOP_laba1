@@ -32,9 +32,27 @@ class MessageBox:
         self.msg.exec_()
 
     def about_project(self):
+        s = 'Цей додаток був створений задовго до появи оригінального Excel!\n' \
+            'Тут можна виконати такі дії:\n' \
+            '1) У лініїї введення:\n\t' \
+            '1. Додавання\n\t' \
+            '2. Віднімання\n\t' \
+            '3. Множення\n\t' \
+            '4. Ділення\n\t' \
+            '5. Піднесення до степеня\n\t' \
+            '6. Знаходження максимального та мінімального серед двох значень\n\t' \
+            '7. Підтримуються унарні операціі\n' \
+            '2) У комірках, за умови що перед виразом є \'=\':\n' \
+            'Приклад 1: =B2 + 3\n\t' \
+            '1. Всі операії перераховані у першому пункті\n\t' \
+            '2. Внесення у клітинку значення іншої клітинки, за умови що перед виразом є \'#\'\n' \
+            'Приклад 2: #B3\n' \
+            '3) Відкрити існуючий файл з розширенням xlsx або xls\n' \
+            '4) Зберігти таблицю у файл з розширенням xlsx або xls\n' \
+            '5) Очистити всю таблицю\n'
         self.msg.setIcon(self.msg.Information)
         self.msg.setWindowTitle("About project")
-        self.msg.setText("Here you can publish your info")
+        self.msg.setText(s)
         self.msg.setStandardButtons(self.msg.Ok)
         self.msg.exec_()
 
@@ -61,19 +79,19 @@ class MessageBox:
 
     def save_before_close(self, event, widget, saving_func):
         reply = self.msg.question(widget, 'Window Close', 'Do you want to close the window without saving?', self.msg.Yes | self.msg.Save | self.msg.Cancel)
-        if reply == QtWidgets.QMessageBox.Yes:
+        if reply == self.msg.Yes:
             event.accept()
-        elif reply == QtWidgets.QMessageBox.Save:
+        elif reply == self.msg.Save:
             saving_func()
-        elif reply == QtWidgets.QMessageBox.Cancel:
+            event.ignore()
+        elif reply == self.msg.Cancel:
             event.ignore()
 
     def save_when_reopen(self, widget, saving_func):
         reply = self.msg.question(widget, 'Window Close', 'Do you want to open new file without saving previous?', self.msg.Yes | self.msg.Save | self.msg.Cancel)
-        if reply == QtWidgets.QMessageBox.Save:
+        if reply == self.msg.Save:
             saving_func()
-            return True
-        elif reply == QtWidgets.QMessageBox.Yes:
+        elif reply == self.msg.Yes:
             return True
 
     def open_file(self, parent):
