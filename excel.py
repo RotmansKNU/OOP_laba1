@@ -289,6 +289,9 @@ class Excel(QtWidgets.QMainWindow):
     def get_col_count(self):
         return self.colCount
 
+    def get_table_widget(self):
+        return self.tableWidget
+
     def retranslate_ui(self, excel):
         _translate = QtCore.QCoreApplication.translate
         excel.setWindowTitle(_translate("Excel", "MeinLiebsterExcel"))
