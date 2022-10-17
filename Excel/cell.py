@@ -1,5 +1,5 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-import excel
+from PyQt5 import QtWidgets
+import Excel.excel as excel
 
 
 class Cell:
@@ -16,61 +16,54 @@ class Cell:
         self.tableWidget.setItem(self.row, self.col, QtWidgets.QTableWidgetItem(expr))
 
     def parsing(self, expr):
-        self.parser = excel.Parser(expr, self.tableWidget)
-        if expr[0] == '=':
-            self.parsing_for_cell(expr)
-        elif expr[0] == '#':
-            self.parsing_for_replacement(expr)
+        self.expression = expr
+        self.parser = excel.Parser(self.expression, self.tableWidget)
+        if self.expression[0] == '=':
+            self.parsing_for_cell()
+        elif self.expression[0] == '#':
+            self.parsing_for_replacement()
         else:
-            self.parsing_for_line(expr)
+            self.parsing_for_line()
 
-    def parsing_for_cell(self, expr):
-        if expr[1:4] == 'max' or expr[1:4] == 'min':
+    def parsing_for_cell(self):
+        if self.expression[1:4] == 'max' or self.expression[1:4] == 'min':
             self.cell_comparing()
         else:
             self.cell_calculation()
 
-    def parsing_for_line(self, expr):
-        if expr[:3] == 'max' or expr[:3] == 'min':
+    def parsing_for_line(self):
+        if self.expression[:3] == 'max' or self.expression[:3] == 'min':
             self.line_comparing()
         else:
             self.line_calculation()
 
-    def parsing_for_replacement(self, expr):
+    def parsing_for_replacement(self):
         res = self.parser.replacement()
         if res is not None:
             self.fill_cell(str(res))
-        elif res == '0':
-            self.fill_cell(str(expr))
         else:
-            self.msg.incorrect_expression()
+            self.fill_cell(str(self.expression[1:]))
 
     def line_calculation(self):
         res = self.parser.calculation_from_line()
         if res is not None:
             self.fill_cell(str(res))
-        else:
-            self.msg.incorrect_expression()
 
     def line_comparing(self):
         res = self.parser.comparing_from_line()
         if res is not None:
             self.fill_cell(str(res))
-        else:
-            self.msg.incorrect_expression()
 
     def cell_calculation(self):
         res = self.parser.calculation_from_cell()
-        if res is not None and res is not False:
+        if res is not None:
             self.fill_cell(str(res))
-        elif res is False:
-            self.fill_cell('')
         else:
-            self.msg.incorrect_expression()
+            self.fill_cell(str(self.expression[1:]))
 
     def cell_comparing(self):
         res = self.parser.comparing_from_cell()
         if res is not None:
             self.fill_cell(str(res))
         else:
-            self.msg.incorrect_expression()
+            self.fill_cell(str(self.expression[1:]))

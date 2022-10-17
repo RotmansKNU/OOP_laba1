@@ -1,4 +1,4 @@
-import excel
+import Excel.excel as excel
 import sys
 
 from src.global_enums import GlobalErrorMessages
@@ -171,6 +171,17 @@ def test_calculation_from_cell_exponentiation_advanced():
     assert parser.calculation_from_cell() == 4.0, GlobalErrorMessages.ExponentiantOperationError.value
 
 
+def test_calculation_from_cell_addition_advanced_for_empty_cells():
+    application = excel.QtWidgets.QApplication(sys.argv)
+    window = excel.Excel()
+    cellB1 = excel.Cell(0, 1, window.get_table_widget())
+    cellC3 = excel.Cell(2, 2, window.get_table_widget())
+    cellB1.fill_cell('')
+    cellC3.fill_cell('')
+    parser = excel.Parser('=-B1+C3', window.get_table_widget())
+    assert parser.calculation_from_cell() == 0, GlobalErrorMessages.ExponentiantOperationError.value
+
+
 def test_comparing_from_cell_max_advanced():
     application = excel.QtWidgets.QApplication(sys.argv)
     window = excel.Excel()
@@ -193,6 +204,18 @@ def test_comparing_from_cell_min_advanced():
     parser = excel.Parser('=min(B1, C3)', window.get_table_widget())
     assert parser.comparing_from_cell() == -2.0, GlobalErrorMessages.MinOperationError.value
 
+
+def test_comparing_from_cell_advanced_for_empty_cells():
+    application = excel.QtWidgets.QApplication(sys.argv)
+    msg = excel.MessageBox()
+    window = excel.Excel()
+    cellB1 = excel.Cell(0, 1, window.get_table_widget())
+    cellC3 = excel.Cell(2, 2, window.get_table_widget())
+    cellB1.fill_cell('')
+    cellC3.fill_cell('')
+    parser = excel.Parser('=max(B1, C3)', window.get_table_widget())
+    assert parser.comparing_from_cell() == msg.numbers_are_equal(), GlobalErrorMessages.ExponentiantOperationError.value
+
 ##################################################################################################
 ##########################################CELL REPLACMENT#########################################
 ##################################################################################################
@@ -200,26 +223,48 @@ def test_comparing_from_cell_min_advanced():
 
 def test_replacement():
     application = excel.QtWidgets.QApplication(sys.argv)
+    msg = excel.MessageBox()
     window = excel.Excel()
     cell = excel.Cell(0, 1, window.get_table_widget())
+    cell2 = excel.Cell(2, 3, window.get_table_widget())
+
     cell.fill_cell(str(5))
+    cell2.fill_cell('')
+
     parser = excel.Parser('#B1', window.get_table_widget())
-    parser2 = excel.Parser('#B3', window.get_table_widget())
-    parser3 = excel.Parser('#b3', window.get_table_widget())
-    msg = excel.MessageBox()
+    parser2 = excel.Parser('#D3', window.get_table_widget())
+    # parser3 = excel.Parser('H3', window.get_table_widget())
+
     assert float(parser.replacement()) == 5.0, GlobalErrorMessages.ReplacementError.value
     assert float(parser2.replacement()) == 0.0, GlobalErrorMessages.ReplacementError.value
-    assert float(parser3.replacement()) == msg.incorrect_expression(), GlobalErrorMessages.ReplacementError.value
+    # with pytest.raises(Exception) as e:
+    #    parser3.replacement()
+    # assert (str(e.value)) == msg.wrong_index()
 
 ##################################################################################################
-################################LINE CALCULATION RETURN NONE######################################
+##########################################EXCEPTIONS##############################################
 ##################################################################################################
 
 
-def test_calculation_from_line_none():
+def test_line_calculation_wrong_character():
     application = excel.QtWidgets.QApplication(sys.argv)
+    msg = excel.MessageBox()
     window = excel.Excel()
-    parser = excel.Parser('C+3', window.get_table_widget())
-    assert parser.calculation_from_line() is None, GlobalErrorMessages.AdditionOperationError.value
+    parser = excel.Parser('2^D', window.get_table_widget())
+    assert parser.calculation_from_line() == msg.incorrect_expression(), GlobalErrorMessages.ExponentiantOperationError.value
 
 
+def test_line_comparing_wrong_character():
+    application = excel.QtWidgets.QApplication(sys.argv)
+    msg = excel.MessageBox()
+    window = excel.Excel()
+    parser = excel.Parser('max(b, 3)', window.get_table_widget())
+    assert parser.comparing_from_line() == msg.incorrect_expression(), GlobalErrorMessages.MaxOperationError.value
+
+
+def test_cell_comparing_wrong_character():
+    application = excel.QtWidgets.QApplication(sys.argv)
+    msg = excel.MessageBox()
+    window = excel.Excel()
+    parser = excel.Parser('=max(d, 3)', window.get_table_widget())
+    assert parser.comparing_from_cell() == msg.incorrect_expression(), GlobalErrorMessages.MaxOperationError.value

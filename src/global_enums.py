@@ -10,3 +10,4 @@ class GlobalErrorMessages(Enum):
     MinOperationError = 'Expression for searching min value is wrong!'
     ExponentiantOperationError = 'Expression with exponent sign is wrong!'
     ReplacementError = 'Expression for replacing the cell is wrong!'
+    GetCellTextError = 'Something wrong with data in cell or you input not existing cell'

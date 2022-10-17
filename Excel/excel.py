@@ -1,10 +1,10 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from technical_functions import *
+from Excel.technical_functions import *
 
-from xlsx_data import XlsxData
+from Excel.xlsx_data import XlsxData
 
-from cell import Cell
-from parser import Parser
+from Excel.cell import Cell
+from Excel.parser import Parser
 
 import pandas as pd
 
@@ -143,6 +143,9 @@ class Excel(QtWidgets.QMainWindow):
 
         self.tableWidget.setVerticalHeaderItem(self.rowCount, QtWidgets.QTableWidgetItem(str(self.rowCount + 1)))
 
+        for j in range(self.colCount):
+            self.tableWidget.setItem(self.rowCount, j, QtWidgets.QTableWidgetItem(''))
+
         self.rowCount += 1
 
     def col_btn_add(self):
@@ -159,6 +162,9 @@ class Excel(QtWidgets.QMainWindow):
             else:
                 base_char += 1
                 continue
+
+        for j in range(self.rowCount):
+            self.tableWidget.setItem(j, self.colCount - 1, QtWidgets.QTableWidgetItem(''))
 
     def row_btn_del(self):
         if self.rowCount > 1:
