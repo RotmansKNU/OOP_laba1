@@ -179,7 +179,7 @@ def test_calculation_from_cell_addition_advanced_for_empty_cells():
     cellB1.fill_cell('')
     cellC3.fill_cell('')
     parser = excel.Parser('=-B1+C3', window.get_table_widget())
-    assert parser.calculation_from_cell() == 0, GlobalErrorMessages.ExponentiantOperationError.value
+    assert parser.calculation_from_cell() == 0, GlobalErrorMessages.AdditionOperationError.value
 
 
 def test_comparing_from_cell_max_advanced():
@@ -214,7 +214,7 @@ def test_comparing_from_cell_advanced_for_empty_cells():
     cellB1.fill_cell('')
     cellC3.fill_cell('')
     parser = excel.Parser('=max(B1, C3)', window.get_table_widget())
-    assert parser.comparing_from_cell() == msg.numbers_are_equal(), GlobalErrorMessages.ExponentiantOperationError.value
+    assert parser.comparing_from_cell() == msg.numbers_are_equal(), GlobalErrorMessages.MaxOperationError.value
 
 ##################################################################################################
 ##########################################CELL REPLACMENT#########################################
@@ -233,13 +233,9 @@ def test_replacement():
 
     parser = excel.Parser('#B1', window.get_table_widget())
     parser2 = excel.Parser('#D3', window.get_table_widget())
-    # parser3 = excel.Parser('H3', window.get_table_widget())
 
     assert float(parser.replacement()) == 5.0, GlobalErrorMessages.ReplacementError.value
     assert float(parser2.replacement()) == 0.0, GlobalErrorMessages.ReplacementError.value
-    # with pytest.raises(Exception) as e:
-    #    parser3.replacement()
-    # assert (str(e.value)) == msg.wrong_index()
 
 ##################################################################################################
 ##########################################EXCEPTIONS##############################################

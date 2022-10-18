@@ -93,6 +93,8 @@ class MessageBox:
             saving_func()
         elif reply == self.msg.Yes:
             return True
+        elif reply == self.msg.Cancel:
+            pass
 
     def open_file(self, parent):
         return QtWidgets.QFileDialog.getOpenFileName(parent, 'Select a file', os.getcwd(), 'Excel File (*.xlsx *.xls)', 'Excel File (*.xlsx *.xls)')

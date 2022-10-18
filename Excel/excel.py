@@ -235,10 +235,10 @@ class Excel(QtWidgets.QMainWindow):
     def creating_sheet_for_data(self):
         maxRow = self.external_table.get_working_sheet().max_row
         maxCol = self.external_table.get_working_sheet().max_column
-        for it in range(3, maxRow):
+        for it in range(1, maxRow):
             if self.rowCount < maxRow:
                 self.row_btn_add()
-        for it in range(3, maxCol):
+        for it in range(1, maxCol):
             if self.colCount < maxCol:
                 self.col_btn_add()
 
@@ -256,7 +256,7 @@ class Excel(QtWidgets.QMainWindow):
         row = self.tableWidget.currentIndex().row()
         col = self.tableWidget.currentIndex().column()
         thing = self.tableWidget.item(row, col)
-        if thing is not None and thing.text() != '' and thing.text()[0] != '=':
+        if thing is not None and thing.text() != '' and thing.text()[0] != '=' and thing.text()[0] != '#':
             self.lineEdit.setText(self.add_text_to_line_on_stack(thing.text()))
 
     def add_text_to_line_on_stack(self, txt):
@@ -285,6 +285,7 @@ class Excel(QtWidgets.QMainWindow):
                 self.tableWidget.setItem(row, col, QtWidgets.QTableWidgetItem())
                 col += 1
             row += 1
+        self.is_saved = True
 
     def clear_line(self):
         self.lineEdit.setText('')

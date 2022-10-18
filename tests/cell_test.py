@@ -11,7 +11,7 @@ def test_get_cell_text():
     cellB1 = excel.Cell(0, 1, window.get_table_widget())
     cellB1.fill_cell(str(5))
 
-    assert cellB1.get_cell_text(0, 1) == str(5), GlobalErrorMessages.AdditionOperationError.value
+    assert cellB1.get_cell_text(0, 1) == str(5), GlobalErrorMessages.GetCellTextError.value
 
 
 def test_parsing():
@@ -29,9 +29,9 @@ def test_parsing():
     cellB2.parsing('=-B3+5')
     cellB3.parsing('#C3')
 
-    assert float(cellB1.get_cell_text(0, 1)) == 8.0, GlobalErrorMessages.GetCellTextError.value
-    assert float(cellB1.get_cell_text(1, 1)) == 3.0, GlobalErrorMessages.GetCellTextError.value
-    assert float(cellB1.get_cell_text(2, 1)) == 0.0, GlobalErrorMessages.GetCellTextError.value
+    assert float(cellB1.get_cell_text(0, 1)) == 8.0, GlobalErrorMessages.ParsingError.value
+    assert float(cellB1.get_cell_text(1, 1)) == 3.0, GlobalErrorMessages.ParsingError.value
+    assert float(cellB1.get_cell_text(2, 1)) == 0.0, GlobalErrorMessages.ParsingError.value
 
 
 def test_parsing_for_cell():
@@ -46,8 +46,8 @@ def test_parsing_for_cell():
     cellB2.fill_cell('')
     cellB2.parsing('=max(-2, 5)')
 
-    assert float(cellB1.get_cell_text(0, 1)) == 8.0, GlobalErrorMessages.GetCellTextError.value
-    assert float(cellB1.get_cell_text(1, 1)) == 5.0, GlobalErrorMessages.GetCellTextError.value
+    assert float(cellB1.get_cell_text(0, 1)) == 8.0, GlobalErrorMessages.CellParsingError.value
+    assert float(cellB1.get_cell_text(1, 1)) == 5.0, GlobalErrorMessages.CellParsingError.value
 
 
 def test_parsing_for_line():
@@ -62,8 +62,8 @@ def test_parsing_for_line():
     cellB2.fill_cell('')
     cellB2.parsing('min(4, -0.4)')
 
-    assert float(cellB1.get_cell_text(0, 1)) == 8.0, GlobalErrorMessages.GetCellTextError.value
-    assert float(cellB1.get_cell_text(1, 1)) == -0.4, GlobalErrorMessages.GetCellTextError.value
+    assert float(cellB1.get_cell_text(0, 1)) == 8.0, GlobalErrorMessages.LineParsingError.value
+    assert float(cellB1.get_cell_text(1, 1)) == -0.4, GlobalErrorMessages.LineParsingError.value
 
 
 def test_parsing_for_replacement():
@@ -74,7 +74,7 @@ def test_parsing_for_replacement():
     cellB1.fill_cell('')
     cellB1.parsing('#G3')
 
-    assert cellB1.get_cell_text(0, 1) == 'G3', GlobalErrorMessages.GetCellTextError.value
+    assert cellB1.get_cell_text(0, 1) == 'G3', GlobalErrorMessages.ReplacementParsingError.value
 
 
 def test_cell_calculation():
@@ -91,8 +91,8 @@ def test_cell_calculation():
     cellB3.fill_cell('')
     cellB2.parsing('=B3+5')
 
-    assert cellB1.get_cell_text(0, 1) == 'G3+5', GlobalErrorMessages.GetCellTextError.value
-    assert float(cellB2.get_cell_text(1, 1)) == 5.0, GlobalErrorMessages.GetCellTextError.value
+    assert cellB1.get_cell_text(0, 1) == 'G3+5', GlobalErrorMessages.CellCalculationError.value
+    assert float(cellB2.get_cell_text(1, 1)) == 5.0, GlobalErrorMessages.CellCalculationError.value
 
 
 def test_cell_comparing():
@@ -109,7 +109,7 @@ def test_cell_comparing():
     cellB3.fill_cell('')
     cellB3.parsing('=max(B1, B2)')
 
-    assert float(cellB3.get_cell_text(2, 1)) == 0, GlobalErrorMessages.GetCellTextError.value
+    assert float(cellB3.get_cell_text(2, 1)) == 0, GlobalErrorMessages.CellComparingError.value
 
 
 def test_cell_comparing_exception():
@@ -123,5 +123,4 @@ def test_cell_comparing_exception():
     cellB2.fill_cell('')
     cellB2.parsing('=max(B4, B5)')
 
-
-    assert cellB2.get_cell_text(1, 1) == 'max(B4, B5)', GlobalErrorMessages.GetCellTextError.value
+    assert cellB2.get_cell_text(1, 1) == 'max(B4, B5)', GlobalErrorMessages.CellComparingError.value
