@@ -96,6 +96,15 @@ class MessageBox:
         elif reply == self.msg.Cancel:
             pass
 
+    def save_when_clear(self, widget, saving_func):
+        reply = self.msg.question(widget, 'Window Close', 'Do you want to clear table without saving?', self.msg.Yes | self.msg.Save | self.msg.Cancel)
+        if reply == self.msg.Save:
+            saving_func()
+        elif reply == self.msg.Yes:
+            return True
+        elif reply == self.msg.Cancel:
+            pass
+
     def open_file(self, parent):
         return QtWidgets.QFileDialog.getOpenFileName(parent, 'Select a file', os.getcwd(), 'Excel File (*.xlsx *.xls)', 'Excel File (*.xlsx *.xls)')
 
@@ -109,19 +118,21 @@ class MessageBox:
         self.msg.setStandardButtons(self.msg.Ok)
         self.msg.exec_()
 
-    def dividing_by_zero(self):
+    def dividing_by_zero(self, x, y):
         self.msg.setIcon(self.msg.Critical)
         self.msg.setWindowTitle("Error")
         self.msg.setText("You can't divide by zero!")
         self.msg.setStandardButtons(self.msg.Ok)
         self.msg.exec_()
+        return f'{x}/{y}'
 
-    def numbers_are_equal(self):
-        self.msg.setIcon(self.msg.Warning)
-        self.msg.setWindowTitle("Warning")
-        self.msg.setText("Your numbers are equal")
+    def zero_to_pover_of_zero(self, x, y):
+        self.msg.setIcon(self.msg.Critical)
+        self.msg.setWindowTitle("Error")
+        self.msg.setText("You can’t pover zero to zero!")
         self.msg.setStandardButtons(self.msg.Ok)
         self.msg.exec_()
+        return f'{x}^{y}'
 
 
 def iter_all_strings():

@@ -13,6 +13,7 @@ class Excel(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.tableWidget = None
+        self.is_saved = True
         self.msg = MessageBox()
         self.external_table = XlsxData()
         self.cell = None
@@ -25,7 +26,6 @@ class Excel(QtWidgets.QMainWindow):
         self.init_ui()
         self.on_event()
         self.clear_table()
-        self.is_saved = True
 
     def init_ui(self):
         self.centralWidget = QtWidgets.QWidget(self)
@@ -167,6 +167,7 @@ class Excel(QtWidgets.QMainWindow):
             self.tableWidget.setItem(j, self.colCount - 1, QtWidgets.QTableWidgetItem(''))
 
     def row_btn_del(self):
+        self.is_saved = False
         if self.rowCount > 1:
             self.tableWidget.setRowCount(self.rowCount - 1)
             self.rowCount -= 1
@@ -174,6 +175,7 @@ class Excel(QtWidgets.QMainWindow):
             self.msg.min_table_row_warning()
 
     def col_btn_del(self):
+        self.is_saved = False
         if self.colCount > 1:
             self.tableWidget.setColumnCount(self.colCount - 1)
             self.colCount -= 1
@@ -278,8 +280,17 @@ class Excel(QtWidgets.QMainWindow):
             cell = Cell(row, col, self.tableWidget)
             if cell.get_cell_text(row, col)[0] == '=' or cell.get_cell_text(row, col)[0] == '#':
                 cell.parsing(thing.text())
+            else:
+                cell.input_data(thing.text())
 
     def clear_table(self):
+        if self.is_saved:
+            self.clear()
+        else:
+            if self.msg.save_when_clear(self.tableWidget, self.save_data):
+                self.clear()
+
+    def clear(self):
         for row in range(0, self.rowCount):
             for col in range(0, self.colCount):
                 self.tableWidget.setItem(row, col, QtWidgets.QTableWidgetItem())

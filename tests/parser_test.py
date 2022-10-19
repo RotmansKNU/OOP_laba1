@@ -32,9 +32,9 @@ def test_calculation_from_line_multiplication():
 def test_calculation_from_line_division():
     application = excel.QtWidgets.QApplication(sys.argv)
     window = excel.Excel()
-    parser = excel.Parser('3/0', window.get_table_widget())
+    parser = excel.Parser('3/-3', window.get_table_widget())
     msg = excel.MessageBox()
-    assert parser.calculation_from_line() == msg.dividing_by_zero(), GlobalErrorMessages.DivisionOperationError.value
+    assert parser.calculation_from_line() == -1, GlobalErrorMessages.DivisionOperationError.value
 
 
 def test_calculation_from_line_exponentiation():
@@ -86,9 +86,9 @@ def test_calculation_from_cell_multiplication_simple():
 def test_calculation_from_cell_division_simple():
     application = excel.QtWidgets.QApplication(sys.argv)
     window = excel.Excel()
-    parser = excel.Parser('=3/0', window.get_table_widget())
+    parser = excel.Parser('=3/2', window.get_table_widget())
     msg = excel.MessageBox()
-    assert parser.calculation_from_cell() == msg.dividing_by_zero(), GlobalErrorMessages.DivisionOperationError.value
+    assert parser.calculation_from_cell() == 1.5, GlobalErrorMessages.DivisionOperationError.value
 
 
 def test_calculation_from_cell_exponentiation_simple():
@@ -214,7 +214,7 @@ def test_comparing_from_cell_advanced_for_empty_cells():
     cellB1.fill_cell('')
     cellC3.fill_cell('')
     parser = excel.Parser('=max(B1, C3)', window.get_table_widget())
-    assert parser.comparing_from_cell() == msg.numbers_are_equal(), GlobalErrorMessages.MaxOperationError.value
+    assert parser.comparing_from_cell() == 0, GlobalErrorMessages.MaxOperationError.value
 
 ##################################################################################################
 ##########################################CELL REPLACMENT#########################################

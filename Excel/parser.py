@@ -3,7 +3,7 @@ import Excel.excel as excel
 import re
 
 
-class Parser(excel.Cell):
+class Parser:
     def __init__(self, expr, tableWidget):
         self.expression = expr
         self.tableWidget = tableWidget
@@ -11,10 +11,10 @@ class Parser(excel.Cell):
         self.op = {'+': lambda x, y: x + y,
                    '-': lambda x, y: x - y,
                    '*': lambda x, y: x * y,
-                   '/': lambda x, y: x / y if (y != 0) else self.msg.dividing_by_zero(),
-                   '^': lambda x, y: x ** y,
-                   'max': lambda x, y: max(x, y) if (x != y) else self.msg.numbers_are_equal(),
-                   'min': lambda x, y: min(x, y) if (x != y) else self.msg.numbers_are_equal()}
+                   '/': lambda x, y: x / y if (y != 0) else self.msg.dividing_by_zero(x, y),
+                   '^': lambda x, y: x ** y if (y != 0 or x != 0) else self.msg.zero_to_pover_of_zero(x, y),
+                   'max': lambda x, y: max(x, y) if (x != y) else x,
+                   'min': lambda x, y: min(x, y) if (x != y) else x}
 
     def calculation_from_cell(self):
         pattern = re.compile('^\=(\-?)([A-Z]*)(\-\d*\.?\d*|\d*\.?\d*)\s?(\+|\-|\*|\/|\^)\s?([A-Z]*)(\-\d*\.?\d*|\d*\.?\d*)$')
@@ -134,9 +134,9 @@ class Parser(excel.Cell):
                     for j in range(self.tableWidget.columnCount()):
                         if operands[0] == self.tableWidget.horizontalHeaderItem(j).text():
                             if self.tableWidget.item(int(operands[1]) - 1, j).text() != '' and self.tableWidget.item(int(operands[1]) - 1, j).text() != self.expression:
-                                return self.tableWidget.item(int(operands[1]) - 1, j).text()
+                                return id(self.tableWidget.item(int(operands[1]) - 1, j))
                             else:
-                                return 0
+                                return id(0)
             raise
         except:
             self.msg.wrong_index()

@@ -15,6 +15,10 @@ class Cell:
     def fill_cell(self, expr):
         self.tableWidget.setItem(self.row, self.col, QtWidgets.QTableWidgetItem(expr))
 
+    def input_data(self, expr):
+        print('in cell', id(self.tableWidget.item(self.row, self.col)))
+        print('in cell expression', id(expr))
+
     def parsing(self, expr):
         self.expression = expr
         self.parser = excel.Parser(self.expression, self.tableWidget)
