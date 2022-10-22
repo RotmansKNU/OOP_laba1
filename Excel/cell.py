@@ -8,6 +8,7 @@ class Cell:
         self.col = col
         self.tableWidget = tableWidget
         self.msg = excel.MessageBox()
+        self.dependencies = []
 
     def get_cell_text(self, row, col):
         return self.tableWidget.item(row, col).text()
@@ -15,9 +16,15 @@ class Cell:
     def fill_cell(self, expr):
         self.tableWidget.setItem(self.row, self.col, QtWidgets.QTableWidgetItem(expr))
 
-    def input_data(self, expr):
-        print('in cell', id(self.tableWidget.item(self.row, self.col)))
-        print('in cell expression', id(expr))
+    def append_dependencies(self, value):
+        self.dependencies.append(value)
+
+    def update_dependencies(self, value):
+        for i in self.dependencies:
+            self.dependencies[i] = value
+
+    def get_dependencies(self):
+        return self.dependencies
 
     def parsing(self, expr):
         self.expression = expr
@@ -25,7 +32,7 @@ class Cell:
         if self.expression[0] == '=':
             self.parsing_for_cell()
         elif self.expression[0] == '#':
-            self.parsing_for_replacement()
+            return self.parsing_for_replacement()
         else:
             self.parsing_for_line()
 
@@ -45,6 +52,7 @@ class Cell:
         res = self.parser.replacement()
         if res is not None:
             self.fill_cell(str(res))
+            return str(res)
         else:
             self.fill_cell(str(self.expression[1:]))
 

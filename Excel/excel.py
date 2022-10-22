@@ -14,6 +14,8 @@ class Excel(QtWidgets.QMainWindow):
         super().__init__()
         self.tableWidget = None
         self.is_saved = True
+        self.chainLink = 0
+        self.cellsDict = dict()
         self.msg = MessageBox()
         self.external_table = XlsxData()
         self.cell = None
@@ -276,12 +278,29 @@ class Excel(QtWidgets.QMainWindow):
         row = self.tableWidget.currentIndex().row()
         col = self.tableWidget.currentIndex().column()
         thing = self.tableWidget.item(row, col)
-        if thing is not None and thing.text() != '':
+        if thing is not None:
             cell = Cell(row, col, self.tableWidget)
-            if cell.get_cell_text(row, col)[0] == '=' or cell.get_cell_text(row, col)[0] == '#':
-                cell.parsing(thing.text())
-            else:
-                cell.input_data(thing.text())
+            cellID = [row, col]
+            cellIDString = f'{self.tableWidget.horizontalHeaderItem(col).text()}{row + 1}'
+            try:
+                if thing.text() != '':
+                    dependenciesTupple = self.cellsDict[cellIDString].get_dependencies()
+                    if self.chainLink >= len(dependenciesTupple):
+                        self.chainLink = 0
+                        return
+                    el = dependenciesTupple[self.chainLink]
+                    self.chainLink += 1
+                    self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem(thing.text()))
+            except:
+                if cell.get_cell_text(row, col)[0] == '#':
+                    baseID = cell.get_cell_text(row, col)[1:]
+                    self.cellsDict[baseID].append_dependencies(cellID)
+                    res = cell.parsing(thing.text())
+                    self.cellsDict[cellIDString] = res
+                elif cell.get_cell_text(row, col)[0] == '=':
+                    cell.parsing(thing.text())
+                else:
+                    self.cellsDict[cellIDString] = cell
 
     def clear_table(self):
         if self.is_saved:

@@ -134,9 +134,9 @@ class Parser:
                     for j in range(self.tableWidget.columnCount()):
                         if operands[0] == self.tableWidget.horizontalHeaderItem(j).text():
                             if self.tableWidget.item(int(operands[1]) - 1, j).text() != '' and self.tableWidget.item(int(operands[1]) - 1, j).text() != self.expression:
-                                return id(self.tableWidget.item(int(operands[1]) - 1, j))
+                                return self.tableWidget.item(int(operands[1]) - 1, j).text()
                             else:
-                                return id(0)
+                                return 0
             raise
         except:
             self.msg.wrong_index()
