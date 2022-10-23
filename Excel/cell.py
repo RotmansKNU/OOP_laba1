@@ -30,7 +30,7 @@ class Cell:
         self.expression = expr
         self.parser = excel.Parser(self.expression, self.tableWidget)
         if self.expression[0] == '=':
-            self.parsing_for_cell()
+            return self.parsing_for_cell()
         elif self.expression[0] == '#':
             return self.parsing_for_replacement()
         else:
@@ -70,6 +70,7 @@ class Cell:
         res = self.parser.calculation_from_cell()
         if res is not None:
             self.fill_cell(str(res))
+            return str(res)
         else:
             self.fill_cell(str(self.expression[1:]))
 
@@ -77,5 +78,6 @@ class Cell:
         res = self.parser.comparing_from_cell()
         if res is not None:
             self.fill_cell(str(res))
+            return str(res)
         else:
             self.fill_cell(str(self.expression[1:]))

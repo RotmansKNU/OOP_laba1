@@ -167,10 +167,25 @@ class Excel(QtWidgets.QMainWindow):
 
         for j in range(self.rowCount):
             self.tableWidget.setItem(j, self.colCount - 1, QtWidgets.QTableWidgetItem(''))
+# cycle
+# deletion
 
     def row_btn_del(self):
         self.is_saved = False
         if self.rowCount > 1:
+            for j in range(self.colCount):
+                try:
+                    cellIDString = f'{self.tableWidget.horizontalHeaderItem(j).text()}{self.rowCount}'
+                    dependenciesTupple = self.cellsDict[cellIDString].get_dependencies()
+                    if self.chainLink >= len(dependenciesTupple):
+                        self.chainLink = 0
+                        return
+                    el = dependenciesTupple[self.chainLink]
+                    self.chainLink += 1
+                    self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem('empty'))
+                except:
+                    pass
+
             self.tableWidget.setRowCount(self.rowCount - 1)
             self.rowCount -= 1
         else:
@@ -179,6 +194,19 @@ class Excel(QtWidgets.QMainWindow):
     def col_btn_del(self):
         self.is_saved = False
         if self.colCount > 1:
+            for j in range(self.rowCount):
+                try:
+                    cellIDString = f'{self.tableWidget.horizontalHeaderItem(self.colCount - 1).text()}{j + 1}'
+                    dependenciesTupple = self.cellsDict[cellIDString].get_dependencies()
+                    if self.chainLink >= len(dependenciesTupple):
+                        self.chainLink = 0
+                        return
+                    el = dependenciesTupple[self.chainLink]
+                    self.chainLink += 1
+                    self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem('empty'))
+                except:
+                    pass
+
             self.tableWidget.setColumnCount(self.colCount - 1)
             self.colCount -= 1
         else:
@@ -278,29 +306,44 @@ class Excel(QtWidgets.QMainWindow):
         row = self.tableWidget.currentIndex().row()
         col = self.tableWidget.currentIndex().column()
         thing = self.tableWidget.item(row, col)
-        if thing is not None:
+        if thing is not None and thing.text() != '':
             cell = Cell(row, col, self.tableWidget)
             cellID = [row, col]
             cellIDString = f'{self.tableWidget.horizontalHeaderItem(col).text()}{row + 1}'
             try:
-                if thing.text() != '':
-                    dependenciesTupple = self.cellsDict[cellIDString].get_dependencies()
-                    if self.chainLink >= len(dependenciesTupple):
-                        self.chainLink = 0
-                        return
-                    el = dependenciesTupple[self.chainLink]
-                    self.chainLink += 1
-                    self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem(thing.text()))
+                self.update_chain(cellIDString, cell, row, col, thing)
             except:
-                if cell.get_cell_text(row, col)[0] == '#':
-                    baseID = cell.get_cell_text(row, col)[1:]
-                    self.cellsDict[baseID].append_dependencies(cellID)
-                    res = cell.parsing(thing.text())
-                    self.cellsDict[cellIDString] = res
-                elif cell.get_cell_text(row, col)[0] == '=':
-                    cell.parsing(thing.text())
-                else:
-                    self.cellsDict[cellIDString] = cell
+                self.create_chain(cellIDString, cellID, cell, row, col, thing)
+
+    def update_chain(self, cellIDString, cell, row, col, thing):
+        dependenciesTupple = self.cellsDict[cellIDString].get_dependencies()
+        if self.chainLink >= len(dependenciesTupple):
+            self.chainLink = 0
+            return
+        el = dependenciesTupple[self.chainLink]
+        self.chainLink += 1
+        if cell.get_cell_text(row, col)[0] == '=':
+            res = cell.parsing(thing.text())
+            self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem(res))
+        else:
+            self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem(thing.text()))
+
+    def create_chain(self, cellIDString, cellID, cell, row, col, thing):
+        if cell.get_cell_text(row, col)[0] == '#':
+            baseID = cell.get_cell_text(row, col)[1:]
+            try:
+                self.cellsDict[baseID].append_dependencies(cellID)
+                res = cell.parsing(thing.text())
+                self.cellsDict[cellIDString] = res
+            except:
+                self.cellsDict[baseID] = cell
+                self.cellsDict[baseID].append_dependencies(cellID)
+                res = cell.parsing(thing.text())
+                self.cellsDict[cellIDString] = res
+        elif cell.get_cell_text(row, col)[0] == '=':
+            cell.parsing(thing.text())
+        else:
+            self.cellsDict[cellIDString] = cell
 
     def clear_table(self):
         if self.is_saved:
