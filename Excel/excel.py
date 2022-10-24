@@ -314,7 +314,7 @@ class Excel(QtWidgets.QMainWindow):
 
     def update_chain(self, cellIDString, cell, row, col, thing):
         dependenciesTupple = self.cellsDict[cellIDString].get_dependencies()
-        if self.chainLink >= len(dependenciesTupple):
+        if self.chainLink >= len(dependenciesTupple) and len(dependenciesTupple) != 0:
             self.chainLink = 0
             return
 
