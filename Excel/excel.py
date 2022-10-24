@@ -167,8 +167,6 @@ class Excel(QtWidgets.QMainWindow):
 
         for j in range(self.rowCount):
             self.tableWidget.setItem(j, self.colCount - 1, QtWidgets.QTableWidgetItem(''))
-# cycle
-# deletion
 
     def row_btn_del(self):
         self.is_saved = False
@@ -177,12 +175,11 @@ class Excel(QtWidgets.QMainWindow):
                 try:
                     cellIDString = f'{self.tableWidget.horizontalHeaderItem(j).text()}{self.rowCount}'
                     dependenciesTupple = self.cellsDict[cellIDString].get_dependencies()
-                    if self.chainLink >= len(dependenciesTupple):
-                        self.chainLink = 0
-                        return
-                    el = dependenciesTupple[self.chainLink]
-                    self.chainLink += 1
-                    self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem('empty'))
+                    i = 0
+                    while i < len(dependenciesTupple):
+                        el = dependenciesTupple[i]
+                        self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem('Empty'))
+                        i += 1
                 except:
                     pass
 
@@ -198,12 +195,11 @@ class Excel(QtWidgets.QMainWindow):
                 try:
                     cellIDString = f'{self.tableWidget.horizontalHeaderItem(self.colCount - 1).text()}{j + 1}'
                     dependenciesTupple = self.cellsDict[cellIDString].get_dependencies()
-                    if self.chainLink >= len(dependenciesTupple):
-                        self.chainLink = 0
-                        return
-                    el = dependenciesTupple[self.chainLink]
-                    self.chainLink += 1
-                    self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem('empty'))
+                    i = 0
+                    while i < len(dependenciesTupple):
+                        el = dependenciesTupple[i]
+                        self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem('Empty'))
+                        i += 1
                 except:
                     pass
 
@@ -306,6 +302,7 @@ class Excel(QtWidgets.QMainWindow):
         row = self.tableWidget.currentIndex().row()
         col = self.tableWidget.currentIndex().column()
         thing = self.tableWidget.item(row, col)
+
         if thing is not None and thing.text() != '':
             cell = Cell(row, col, self.tableWidget)
             cellID = [row, col]
@@ -320,9 +317,13 @@ class Excel(QtWidgets.QMainWindow):
         if self.chainLink >= len(dependenciesTupple):
             self.chainLink = 0
             return
+
         el = dependenciesTupple[self.chainLink]
         self.chainLink += 1
         if cell.get_cell_text(row, col)[0] == '=':
+            res = cell.parsing(thing.text())
+            self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem(res))
+        elif cell.get_cell_text(row, col)[0] == '#':
             res = cell.parsing(thing.text())
             self.tableWidget.setItem(el[0], el[1], QtWidgets.QTableWidgetItem(res))
         else:

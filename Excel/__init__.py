@@ -1,1 +1,1 @@
-__all__ = ["application", "cell", "excel", "parser", "technical_functions", "xlsx_data", "cell_chain"]
+__all__ = ["application", "cell", "excel", "parser", "technical_functions", "xlsx_data"]
